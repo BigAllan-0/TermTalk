@@ -1,3 +1,3 @@
-# ChatterByte: Terminal-Based Multi-Client Messaging Server
+# TermTalk: Terminal-Based Multi-Client Messaging Server
 
 Idk something
