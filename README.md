@@ -1,3 +1,3 @@
-# C Project Repository Template
+# ChatterByte: Terminal-Based Multi-Client Messaging Server
 
-A template repository for a C project.
+Idk something
