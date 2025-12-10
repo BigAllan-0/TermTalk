@@ -44,7 +44,7 @@ int main() {
         char buffer[256] = { 0 };
 
         // Wait until either stdin or the socket has data
-        poll(fds, 2, 50000);
+        poll(fds, 2, 30000);
 
         // If there is input from stdin, read it and send it to the server
         if (fds[0].revents & POLLIN) {
