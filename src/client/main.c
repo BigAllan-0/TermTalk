@@ -1,10 +1,15 @@
+#include "../utils/utils.h"
 #include <sys/socket.h>
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <poll.h>
 #include <unistd.h>
+#include <string.h>
+
+const int MAX_USERNAME_LENGTH = 64; // -2 for length of string
 
 int main() {
+
     // Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -14,14 +19,23 @@ int main() {
     // 0             -> IP address 0.0.0.0 (not ideal for a real client;
     //                  usually you'd use 127.0.0.1 or a real server IP)
     struct sockaddr_in address = {
-        AF_INET,
-        htons(9999),
-        0
+        .sin_family = AF_INET,
+        .sin_port = htons(9999),
+        .sin_addr.s_addr = inet_addr("127.0.0.1")
     };
 
     // Connect to the server listening on port 9999.
     // The OS automatically assigns a temporary (ephemeral) client port.
-    connect(sockfd, (struct sockaddr *)&address, sizeof(address));
+    printf("Connecting to server...");
+    if (connect(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("connect");
+        return 1;
+    }
+    char username[MAX_USERNAME_LENGTH];
+    #ifndef ASK_USERNAME
+        #define ASK_USERNAME
+        strip_user_input(username, MAX_USERNAME_LENGTH);
+    #endif
 
     // stdin is file descriptor 0
     // Set up poll() to watch:
@@ -40,7 +54,10 @@ int main() {
         }
     };
 
+
+
     for (;;) {
+        fflush(stdout);
         char buffer[256] = { 0 };
 
         // Wait until either stdin or the socket has data
@@ -48,17 +65,21 @@ int main() {
 
         // If there is input from stdin, read it and send it to the server
         if (fds[0].revents & POLLIN) {
-            read(0, buffer, 255);             // read from keyboard
-            send(sockfd, buffer, 255, 0);     // write to server socket
+            char msg[192] = { 0 }; // initializing space for message
+            if (fgets(msg, sizeof(msg), stdin) == NULL) {
+                return 0;
+            }
+            snprintf(buffer, (sizeof(buffer) - 3), "%s: %s", username, msg);
+            send(sockfd, buffer, strlen(buffer), 0);     // write to server socket
         }
         // If there is data from the server, read it and print it
-        else if (fds[1].revents & POLLIN) {
+        if (fds[1].revents & POLLIN) {
             // recv() == 0 means the server closed the connection
-            if (recv(sockfd, buffer, 255, 0) == 0) {
+            if (recv(sockfd, buffer, sizeof(buffer), 0) == 0) {
                 return 0;
             }
 
-            printf("%s\n", buffer);
+            printf("%s", buffer);
         }
     }
 
