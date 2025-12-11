@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 int main() {
-    // Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
+    // Creates a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     // Fill in the server address:
