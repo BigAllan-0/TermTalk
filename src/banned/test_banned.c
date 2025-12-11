@@ -2,15 +2,13 @@
 #include "banned.h"
 
 int main(void) {
-    if (banned_init("banned_words.txt") != 0) {
-        printf("did not load banned words list");
-        return 1;
-    }
+    banned_init("banned_words.txt");
 
-    const char *test = "this is a test sentence iwth swear words yay";
-    int result = banned_contains(test);
-
-    printf("banned_contains(\"%s\") = %d\n", test, result);
+    const char *safe = "this sentence is safe";
+    const char *bad = "this sentence is not fucking safe";
+    
+    printf("safe example - %d\n", banned_contains(safe));
+    printf("bad example - %d\n", banned_contains(bad));
 
     banned_close();
     return 0;
