@@ -15,45 +15,66 @@
 
 // global (only within banned.c) storage for banned words
 static char banned_words[MAX_BANNED_WORDS][MAX_BANNED_LEN]; // 2D array of banned words (word)(word_length)
-static int num_banned = 0; // tracking number of banned words
+static int num_banned = 0; // Tracking number of banned words
 
 
-static void to_lower_str(char *text) { //goes thru each character of string and turns them into lower case
-    while (*text) {
-        *text = (char)tolower((unsigned char)*text);
-        text++;
+static void to_lower_str(char *text) {
+    int i = 0;
+
+    while (text[i] != '\0') { // loop until end of string
+        text[i] = tolower(text[i]); // convert character to lowercase
+        i++; // move to next character
     }
 }
 
-
+static void strip_newline(char *s) {
+    int len = strlen(s);
+    if (len > 0 && s[len - 1] == '\n') {
+        s[len - 1] = '\0';
+    }
+}
 
 int banned_init(const char *banned_text_filename) {
-    (void)banned_text_filename; // skip over for time being
 
-    num_banned = 0; // hard coding banned words to test the storage
+    num_banned = 0; 
 
-    strncpy(banned_words[num_banned], "fucking", MAX_BANNED_LEN);
-    banned_words[num_banned][MAX_BANNED_LEN - 1] = '\0';
-    to_lower_str(banned_words[num_banned]);
-    num_banned++; // increments by 1
-
-    strncpy(banned_words[num_banned], "needham", MAX_BANNED_LEN);
-    banned_words[num_banned][MAX_BANNED_LEN - 1] = '\0';
-    to_lower_str(banned_words[num_banned]);
-    num_banned++; // increments by 1
-
-    // strncpy(banned_words[num_banned++], "Needham", MAX_BANNED_LEN); //oh baby those hips don't lie doot doot
-    // strncpy(banned_words[num_banned++], "fucking", MAX_BANNED_LEN); 
-    // strncpy(banned_words[num_banned++], "sucks", MAX_BANNED_LEN); 
+    // Reading from text file
+    FILE *banned_words_file = fopen(banned_text_filename, "r"); // pointer to the open file returned form fopen
+    if (!banned_words_file) {
+        perror("banned_init: fopen"); // double check if this is perror right
+        return -1; 
+    }
 
 
-    printf("banned_init: loaded %d hard-coded banned words\n", num_banned);
+    char line_buffer[128]; // temporary buffer to store one line from text file
+
+    while (fgets(line_buffer, sizeof(line_buffer), banned_words_file)) {
+        
+        strip_newline(line_buffer);
+
+        if (line_buffer[0] == '\0') { // if already has /0 skip it, or empty line
+            continue;
+        }
+
+        strncpy(banned_words[num_banned], line_buffer, MAX_BANNED_LEN);
+        banned_words[num_banned][MAX_BANNED_LEN - 1] = '\0';
+
+        // Lowercase for case-insensitive matching
+        to_lower_str(banned_words[num_banned]);
+
+        num_banned++; // increment count of number of banned words loaded
+    }
+
+
+
+    fclose(banned_words_file);
+
+    printf("banned_init: loaded %d banned words from %s\n", num_banned, banned_text_filename);
     return 0;
 }
 
 void banned_close(void) {
-    // empty, will implement later once init is tested
-
+    // no need to free memory so yeah
 }
 
 int banned_contains(const char *msg) {
@@ -67,7 +88,7 @@ int banned_contains(const char *msg) {
 
     for (int i = 0; i < num_banned; i++) {
         if (strstr(lowercase_message, banned_words[i]) != NULL){
-            return 1;
+            return 1; // a banned word was found
         }
     }
     return 0;

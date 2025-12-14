@@ -5,6 +5,12 @@
 #include <unistd.h>
 
 int main() {
+
+    if (banned_init("banned/banned_words.txt") == -1) { // loading the banned words from file
+    printf("Could not load banned words.\n");
+    return 1;
+    }
+
     // Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 

@@ -2,12 +2,15 @@
 #include "banned.h"
 
 int main(void) {
-    banned_init("banned_words.txt");
 
+    if (banned_init("banned_words.txt") != 0) {
+        printf("Failed to load banned_words.txt\n");
+        return 1;
+    }
 
     const char *tests[] = {
-        "I live in Needham",
-        "It fucking sucks",
+        "I live hate in Needham",
+        "I hate poop sandwiches",
         "It doesn't FUCKING suck",
         NULL // end
     };
