@@ -10,14 +10,11 @@ const int MAX_USERNAME_LENGTH = 64; // -2 for length of string
 
 int main() {
 
-<<<<<<< HEAD
     if (banned_init("banned/banned_words.txt") == -1) { // loading the banned words from file
     printf("Could not load banned words.\n");
     return 1;
     }
 
-=======
->>>>>>> 7ef5d2b2be8e890f1e719047c857a53d86853567
     // Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
