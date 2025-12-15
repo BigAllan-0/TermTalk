@@ -3,6 +3,12 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <arpa/inet.h>
+#include <poll.h>
+#include <unistd.h>
+#include <string.h>
 
 char *strip_user_input(char *input_buffer, int buffer_size) {
     printf("Please input your username: ");
@@ -12,8 +18,9 @@ char *strip_user_input(char *input_buffer, int buffer_size) {
     input_buffer[size-1] = '\0';
 }
 
-void send_and_receive(pollfd fds) {
-        char buffer[256] = { 0 };
+int send_and_receive(int connected_fd, struct pollfd fds[], char *username) {
+        
+    char buffer[256] = { 0 };
 
         // Wait until either stdin or the socket has data
         poll(fds, 2, 30000);
@@ -25,12 +32,12 @@ void send_and_receive(pollfd fds) {
                 return 0;
             }
             snprintf(buffer, (sizeof(buffer) - 3), "%s: %s", username, msg);
-            send(sockfd, buffer, strlen(buffer), 0);     // write to server socket
+            send(connected_fd, buffer, strlen(buffer), 0);     // write to server socket
         }
         // If there is data from the server, read it and print it
         if (fds[1].revents & POLLIN) {
             // recv() == 0 means the server closed the connection
-            if (recv(sockfd, buffer, sizeof(buffer), 0) == 0) {
+            if (recv(connected_fd, buffer, sizeof(buffer), 0) == 0) {
                 return 0;
             }
 
