@@ -53,7 +53,7 @@ int main() {
     while (1) {
         // Accept one incoming connection.
         // sockfd stays as the listening socket; clientfd is the connected socket.
-        printf("Waiting for a new client to join...\n");
+        printf("Waiting for a new client to join. Any messages you send now will be relayed to the next client\n");
         int clientfd = accept(sockfd, NULL, NULL);
         printf("New client connected!\n");
 
@@ -77,7 +77,6 @@ int main() {
         while (1) {
             fflush(stdout);
             if (!send_and_receive(clientfd, fds, username, 0)) {
-                close(clientfd);
                 break;
             }
         }
