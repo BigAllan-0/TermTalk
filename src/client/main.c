@@ -59,7 +59,7 @@ int main() {
 
     while (1) {
         fflush(stdout);
-        send_and_receive(sockfd, fds, username);
+        send_and_receive(sockfd, fds, username, 1);
     }
 
     return 0;

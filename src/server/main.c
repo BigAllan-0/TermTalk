@@ -15,8 +15,6 @@ int main() {
         printf("Could not load banned words.\n");
         return 1;
     }
-    char username[MAX_USERNAME_LENGTH];
-    strip_user_input(username, MAX_USERNAME_LENGTH);
 
     // Creates a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -31,36 +29,58 @@ int main() {
         .sin_addr.s_addr = htonl(INADDR_ANY)
     };
 
+    // prevent reuse of the socket and address so i can re-run server quickly
+    int opt = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
     // Bind this socket to port 9999 on all local interfaces (0.0.0.0:9999)
-    bind(sockfd, (struct sockaddr *)&address, sizeof(address));
+    if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("bind failed");
+        return 1;
+    }
 
     // Start listening for incoming TCP connection requests on port 9999
-    listen(sockfd, 10);
+    if (listen(sockfd, 10) < 0) {
+        perror("listen failed");
+        return 1;
+    }
 
-    // Accept one incoming connection.
-    // sockfd stays as the listening socket; clientfd is the connected socket.
-    int clientfd = accept(sockfd, NULL, NULL);
+    char username[MAX_USERNAME_LENGTH];
+    strip_user_input(username, MAX_USERNAME_LENGTH);
 
-    // stdin is file descriptor 0
-    // Set up poll() to watch:
-    // - fds[0]: stdin (keyboard input)
-    // - fds[1]: clientfd (data from the connected client)
-    struct pollfd fds[2] = {
-        {
-            0,        // fd: stdin
-            POLLIN,   // events: wait for data to read
-            0
-        },
-        {
-            clientfd, // fd: connected client socket
-            POLLIN,   // events: wait for data to read
-            0
-        }
-    };
+    
 
     while (1) {
-        fflush(stdout);
-        send_and_receive(clientfd, fds, username);
+        // Accept one incoming connection.
+        // sockfd stays as the listening socket; clientfd is the connected socket.
+        printf("Waiting for a new client to join...\n");
+        int clientfd = accept(sockfd, NULL, NULL);
+        printf("New client connected!\n");
+
+        // stdin is file descriptor 0
+        // Set up poll() to watch:
+        // - fds[0]: stdin (keyboard input)
+        // - fds[1]: clientfd (data from the connected client)
+        struct pollfd fds[2] = {
+            {
+                0,        // fd: stdin
+                POLLIN,   // events: wait for data to read
+                0
+            },
+            {
+                clientfd, // fd: connected client socket
+                POLLIN,   // events: wait for data to read
+                0
+            }
+        };
+
+        while (1) {
+            fflush(stdout);
+            if (!send_and_receive(clientfd, fds, username, 0)) {
+                close(clientfd);
+                break;
+            }
+        }
     }
 
     return 0;

@@ -9,4 +9,4 @@
   */
 char *strip_user_input(char *input_buffer, int buffer_size);
 
-int send_and_receive(int connected_fd, struct pollfd fds[], char *username);
+int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int CLIENT);
