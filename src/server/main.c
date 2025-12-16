@@ -33,7 +33,7 @@ int main() {
     // prevent reuse of the socket and address so i can re-run server quickly
     int reuse = 1;
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1) {
-        error("Socket reuse failed");
+        perror("Socket reuse failed");
     };
 
     // Bind this socket to port 9999 on all local interfaces (0.0.0.0:9999)
@@ -59,6 +59,11 @@ int main() {
         printf("Waiting for a new client to join. Any messages you send now will be relayed to the next client\n");
         int clientfd = accept(sockfd, NULL, NULL);
         printf("New client connected!\n");
+
+        // if (fork()) {
+        //     send_and_receive(clientfd, fds, username, 0)
+        //     close(clientfd);
+        // }
 
         // stdin is file descriptor
         // Set up poll() to watch:

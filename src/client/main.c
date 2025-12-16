@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <stdlib.h>
 
 const int MAX_USERNAME_LENGTH = 64; // -2 for length of string
 int sockfd;
@@ -27,9 +28,9 @@ int main() {
         return 1;
     }
 
-    if(catch_signal(SIGINT, handle_shutdown) == -1) {
-        error("Can't set interrupt handler")
-    };
+    // if(catch_signal(SIGINT, handle_shutdown) == -1) {
+    //     perror("Can't set interrupt handler");
+    // };
 
     // Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
