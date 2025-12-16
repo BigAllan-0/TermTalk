@@ -30,8 +30,10 @@ int main() {
     };
 
     // prevent reuse of the socket and address so i can re-run server quickly
-    int opt = 1;
-    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+    int reuse = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(int)) == -1) {
+        error("Socket reuse failed");
+    };
 
     // Bind this socket to port 9999 on all local interfaces (0.0.0.0:9999)
     if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
@@ -40,7 +42,7 @@ int main() {
     }
 
     // Start listening for incoming TCP connection requests on port 9999
-    if (listen(sockfd, 10) < 0) {
+    if (listen(sockfd, 10) == -1) { // listen queue length is 10
         perror("listen failed");
         return 1;
     }
@@ -57,7 +59,7 @@ int main() {
         int clientfd = accept(sockfd, NULL, NULL);
         printf("New client connected!\n");
 
-        // stdin is file descriptor 0
+        // stdin is file descriptor
         // Set up poll() to watch:
         // - fds[0]: stdin (keyboard input)
         // - fds[1]: clientfd (data from the connected client)

@@ -2,8 +2,7 @@
 
 // LOads the banned words from a file (banned_words.txt, one word per line)
 // Returns a 0 if loaded successfully, but a -1 if fails to load
-int banned_init(const char *filename);
-
+int banned_init(const char *banned_text_filename);
 
 void banned_close(void);
 

@@ -6,8 +6,18 @@
 #include <poll.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 const int MAX_USERNAME_LENGTH = 64; // -2 for length of string
+int sockfd;
+
+void handle_shutdown(int sig) {
+    if (sockfd) {
+        close(sockfd);
+    }
+    fprintf(stderr, "Bye!\n");
+    exit(0);
+}
 
 int main() {
 
@@ -16,8 +26,12 @@ int main() {
         return 1;
     }
 
+    if(catch_signal(SIGINT, handle_shutdown) == -1) {
+        error("Can't set interrupt handler")
+    };
+
     // Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     // Fill in the server address:
     // AF_INET       -> using IPv4
