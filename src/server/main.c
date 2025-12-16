@@ -12,7 +12,7 @@ const int MAX_USERNAME_LENGTH = 64;
 
 int main() {
 
-    if (banned_init("banned/banned_words.txt") == -1) { // loading the banned words from file
+    if (banned_init("../banned/banned_words.txt") == -1) { // loading the banned words from file
         printf("Could not load banned words.\n");
         return 1;
     }

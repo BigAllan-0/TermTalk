@@ -22,8 +22,7 @@ char *strip_user_input(char *input_buffer, int buffer_size) {
 int kick_banned(int connected_fd, char *buffer, char *username) {
     char check_msg[192] = { 0 };
     strcpy(check_msg, buffer);
-    check_msg[strcspn(check_msg, "\n")] = '\0'; // omg theres a reject function!! edit: i think we're suppose to search within check_msg not buffer right?
-
+    check_msg[strcspn(buffer, "\n")] = '\0';
     if (banned_contains(check_msg)) {
         char banned_msg[256];
         snprintf(banned_msg, sizeof(banned_msg), "%s said a bad word and has been disconnected\n", username);
@@ -52,22 +51,11 @@ int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int 
         }
         // If there is data from the server, read it and print it
         if (fds[1].revents & POLLIN) {
-            int bytes_received = recv(connected_fd, buffer, sizeof(buffer) - 1, 0);
-
-            if (bytes_received <= 0) {
-                return 0; // client disconnected or error
-            }
-
-            buffer[bytes_received] = '\0';
-
-            if (!CLIENT && banned_contains(buffer)) {
-                close(connected_fd);
+            if (recv(connected_fd, buffer, sizeof(buffer), 0) == 0) {
                 return 0;
             }
-
             printf("%s", buffer);
         }
-
 
         return 1;
     }
