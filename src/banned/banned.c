@@ -12,8 +12,8 @@
  * CHecks for any banned words sent from predetermined list in a text file
  */
 
-
 // global (only within banned.c) storage for banned words
+
 static char banned_words[MAX_BANNED_WORDS][MAX_BANNED_LEN]; // 2D array of banned words (word)(word_length)
 static int num_banned = 0; // Tracking number of banned words
 

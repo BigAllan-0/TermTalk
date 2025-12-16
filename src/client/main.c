@@ -1,5 +1,6 @@
 #include "../banned/banned.h"
 #include "../utils/utils.h"
+
 #include <sys/socket.h>
 #include <stdio.h>
 #include <arpa/inet.h>
@@ -21,7 +22,7 @@ void handle_shutdown(int sig) {
 
 int main() {
 
-    if (banned_init("../banned/banned_words.txt") == -1) { // loading the banned words from file
+    if (banned_init("banned/banned_words.txt") == -1) { // loading the banned words from file
         printf("Could not load banned words.\n");
         return 1;
     }
