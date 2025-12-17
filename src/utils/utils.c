@@ -34,13 +34,18 @@ int kick_banned(int connected_fd, char *buffer, char *username) {
     }
 }
 
+// if (listener_fd.revents && POLLIN) {
+//     FILE *chat_log = fopen("chat_log.txt", "w");
+
+// }
+
 int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int CLIENT) {
         
     char buffer[256] = { 0 };
         // Wait until either stdin or the socket has data
         poll(fds, 2, 30000);
         // If there is input from stdin, read it and send it to the server
-        if (fds[0].revents & POLLIN) {
+        if (fds[0].revents && POLLIN) {
             char msg[192] = { 0 }; // initializing space for message
             if (fgets(msg, sizeof(msg), stdin) == NULL) {
                 return 0;

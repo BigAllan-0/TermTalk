@@ -7,8 +7,52 @@
 #include <poll.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
 const int MAX_USERNAME_LENGTH = 64;
+int sockfd;
+
+void* chat_with_client(void* arg) {
+    char *username = (char *)arg;
+    while (1) {
+        // Accept one incoming connection.
+        // sockfd stays as the listening socket; clientfd is the connected socket.
+        printf("Waiting for a new client to join. Any messages you send now will be relayed to the next client\n");
+        int clientfd = accept(sockfd, NULL, NULL);
+        printf("New client connected!\n");
+
+        // stdin is file descriptor
+        // Set up poll() to watch:
+        // - fds[0]: stdin (keyboard input)
+        // - fds[1]: clientfd (data from the connected client)
+        struct pollfd fds[2] = {
+            {
+                0,        // fd: stdin
+                POLLIN,   // events: wait for data to read
+                0
+            },
+            {
+                clientfd, // fd: connected client socket
+                POLLIN,   // events: wait for data to read
+                0
+            }
+        };
+
+        while (1) {
+            fflush(stdout);
+            if (!send_and_receive(clientfd, fds, username, 0)) {
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+// void* logger(void* b) {
+//     struct pollfd listener_fd = {
+//         {0, POLLIN, 0}
+//     }
+// }
 
 int main() {
 
@@ -18,7 +62,7 @@ int main() {
     }
 
     // Creates a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     // Fill in the server address:
     // AF_INET       -> using IPv4
@@ -51,44 +95,14 @@ int main() {
     char username[MAX_USERNAME_LENGTH];
     strip_user_input(username, MAX_USERNAME_LENGTH);
 
-    
-
-    while (1) {
-        // Accept one incoming connection.
-        // sockfd stays as the listening socket; clientfd is the connected socket.
-        printf("Waiting for a new client to join. Any messages you send now will be relayed to the next client\n");
-        int clientfd = accept(sockfd, NULL, NULL);
-        printf("New client connected!\n");
-
-        // if (fork()) {
-        //     send_and_receive(clientfd, fds, username, 0)
-        //     close(clientfd);
-        // }
-
-        // stdin is file descriptor
-        // Set up poll() to watch:
-        // - fds[0]: stdin (keyboard input)
-        // - fds[1]: clientfd (data from the connected client)
-        struct pollfd fds[2] = {
-            {
-                0,        // fd: stdin
-                POLLIN,   // events: wait for data to read
-                0
-            },
-            {
-                clientfd, // fd: connected client socket
-                POLLIN,   // events: wait for data to read
-                0
-            }
-        };
-
-        while (1) {
-            fflush(stdout);
-            if (!send_and_receive(clientfd, fds, username, 0)) {
-                break;
-            }
-        }
+    pthread_t t0;
+    // pthread_t t1;
+    if (pthread_create(&t0, NULL, chat_with_client, (void *)&username) == -1) {
+        perror("Couldn't create server-client chat thread");
     }
 
-    return 0;
+    pthread_join(t0, NULL);
+    // if (pthread_create(&t1, NULL, logger, NULL) == -1) {
+    //     perror("Couldn't create logging thread");
+    // }
 }
