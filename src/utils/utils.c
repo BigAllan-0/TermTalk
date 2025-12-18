@@ -10,7 +10,7 @@ char *strip_user_input(char *input_buffer, int buffer_size) {
 }
 
 int kick_banned(int connected_fd, char *buffer, char *username) {
-    char check_msg[192] = { 0 };
+    char check_msg[256] = { 0 };
     strcpy(check_msg, buffer);
     check_msg[strcspn(buffer, "\n")] = '\0';
     if (banned_contains(check_msg)) {
@@ -23,11 +23,6 @@ int kick_banned(int connected_fd, char *buffer, char *username) {
         exit(0);  // quit the client
     }
 }
-
-// if (listener_fd.revents && POLLIN) {
-//     FILE *chat_log = fopen("chat_log.txt", "w");
-
-// }
 
 int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int CLIENT, FILE *chat_log) {
 
