@@ -8,12 +8,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <signal.h>
+#include <stdlib.h>
 
 const int MAX_USERNAME_LENGTH = 64;
 int sockfd;
+FILE *chat_log;
 
-void* chat_with_client(void* arg) {
-    char *username = (char *)arg;
+int chat_with_client(char *username) {
     while (1) {
         // Accept one incoming connection.
         // sockfd stays as the listening socket; clientfd is the connected socket.
@@ -40,7 +42,8 @@ void* chat_with_client(void* arg) {
 
         while (1) {
             fflush(stdout);
-            if (!send_and_receive(clientfd, fds, username, 0)) {
+            // the fourth value is 0 to indicate that this is the server
+            if (!send_and_receive(clientfd, fds, username, 0, chat_log)) {
                 break;
             }
         }
@@ -48,13 +51,31 @@ void* chat_with_client(void* arg) {
     return 0;
 }
 
-// void* logger(void* b) {
-//     struct pollfd listener_fd = {
-//         {0, POLLIN, 0}
-//     }
-// }
+void handle_shutdown(int sig) {
+    if (sockfd) {
+        close(sockfd);
+    }
+
+    if (fclose(chat_log) == EOF) {
+        perror("Error closing file");
+   }
+
+    fprintf(stderr, "\nBye!\n");
+    exit(0);
+}
 
 int main() {
+
+    if(signal(SIGINT, handle_shutdown) == SIG_ERR) {
+        perror("Error setting signal handler");
+        return 1;
+    }
+
+    chat_log = fopen("log.txt", "w");
+    if (chat_log == NULL) {
+        perror("Error opening log file");
+        return 1;
+    }
 
     if (banned_init("../banned/banned_words.txt") == -1) { // loading the banned words from file
         printf("Could not load banned words.\n");
@@ -95,14 +116,5 @@ int main() {
     char username[MAX_USERNAME_LENGTH];
     strip_user_input(username, MAX_USERNAME_LENGTH);
 
-    pthread_t t0;
-    // pthread_t t1;
-    if (pthread_create(&t0, NULL, chat_with_client, (void *)&username) == -1) {
-        perror("Couldn't create server-client chat thread");
-    }
-
-    pthread_join(t0, NULL);
-    // if (pthread_create(&t1, NULL, logger, NULL) == -1) {
-    //     perror("Couldn't create logging thread");
-    // }
+    chat_with_client(username);
 }

@@ -1,17 +1,7 @@
 /*
  * Defines useful functions common between both client and server
  */
-#include "../banned/banned.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
+#include "utils.h"
 
 char *strip_user_input(char *input_buffer, int buffer_size) {
     printf("Please input your username: ");
@@ -39,8 +29,8 @@ int kick_banned(int connected_fd, char *buffer, char *username) {
 
 // }
 
-int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int CLIENT) {
-        
+int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int CLIENT, FILE *chat_log) {
+
     char buffer[256] = { 0 };
         // Wait until either stdin or the socket has data
         poll(fds, 2, 30000);
@@ -52,6 +42,7 @@ int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int 
             }
             snprintf(buffer, (sizeof(buffer) - 3), "%s: %s", username, msg);
             if (CLIENT) kick_banned(connected_fd, buffer, username);
+            if (!CLIENT && chat_log != NULL) fprintf(chat_log, "%s", buffer);
             send(connected_fd, buffer, strlen(buffer), 0);
         }
         // If there is data from the server, read it and print it
@@ -59,6 +50,7 @@ int send_and_receive(int connected_fd, struct pollfd fds[], char *username, int 
             if (recv(connected_fd, buffer, sizeof(buffer), 0) == 0) {
                 return 0;
             }
+            if (!CLIENT && chat_log != NULL) fprintf(chat_log, "%s", buffer);
             printf("%s", buffer);
         }
 

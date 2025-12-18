@@ -27,11 +27,7 @@ int main() {
         printf("Could not load banned words.\n");
         return 1;
     }
-
-    // if(catch_signal(SIGINT, handle_shutdown) == -1) {
-    //     perror("Can't set interrupt handler");
-    // };
-
+    
     // Create a TCP socket (AF_INET = IPv4, SOCK_STREAM = TCP)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -75,7 +71,7 @@ int main() {
 
     while (1) {
         fflush(stdout);
-        send_and_receive(sockfd, fds, username, 1);
+        send_and_receive(sockfd, fds, username, 1, NULL);
     }
 
     return 0;
